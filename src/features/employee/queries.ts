@@ -18,3 +18,12 @@ export function useEmployees(params: EmployeeSearchParams | null, page: { page: 
     staleTime: 30_000,
   });
 }
+
+export function useEmployeeDetail(employeeId?: string) {
+  return useQuery({
+    queryKey: employeeId ? employeeKeys.detail(employeeId) : employeeKeys.details(),
+    queryFn: () => employeeApi.detail(employeeId!),
+    enabled: Boolean(employeeId),
+    staleTime: 30_000,
+  });
+}

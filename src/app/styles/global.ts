@@ -39,4 +39,8 @@ export const GlobalStyle = createGlobalStyle`
     --ag-row-hover-color: #f4f7fc;
     --ag-selected-row-background-color: #eaf1ff;
   }
+  .ag-theme-quartz .ag-cell.employee-no-cell {
+    display: flex;
+    align-items: center;
+  }
 `;

@@ -1,121 +1,30 @@
-﻿import type { GridApi } from "@ag-grid-community/core";
-import type { ColDef } from "@ag-grid-community/core";
-import {
-  AgGridWrapper,
-  EmployeeSearchBoxNoTree,
-  EmployeeSearchField,
-  PageHeader,
-  PermissionButton,
-  SearchButtonGroup,
-  SearchFormLayout,
-} from "@company/hr-common-ui";
-import type { EmployeeSearchValue } from "@company/hr-common-ui";
-import { Button, Card, DatePicker, Form, Select, Space } from "antd";
-import { useMemo, useRef, useState } from "react";
-import type { EmployeeSearchParams } from "../entities/employee/types";
-import type { Employee } from "../entities/employee/types";
-import { employeeSearchApi } from "../features/employee/employeeSearchApi";
-import { useEmployees } from "../features/employee/queries";
+﻿import { Space } from "antd";
+import { useState } from "react";
+import { EmployeeDetailView } from "../features/employee/EmployeeDetailView";
+import { EmployeeListView } from "../features/employee/EmployeeListView";
+import type { EmployeeListState } from "../features/employee/EmployeeListView";
 
-type EmployeeSearchFormValues = EmployeeSearchParams & {
-  employee?: EmployeeSearchValue;
+const initialEmployeeListState: EmployeeListState = {
+  formValues: {},
+  searchParams: import.meta.env.VITE_ENABLE_MOCK === "true" ? {} : null,
+  page: { page: 0, size: 20 },
 };
 
 export function EmployeePage() {
-  const [form] = Form.useForm<EmployeeSearchFormValues>();
-  const gridApiRef = useRef<GridApi | null>(null);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [searchParams, setSearchParams] = useState<EmployeeSearchParams | null>(
-    import.meta.env.VITE_ENABLE_MOCK === "true" ? {} : null,
-  );
-  const [page, setPage] = useState({ page: 0, size: 20 });
-  const { data, isFetching } = useEmployees(searchParams, page);
-
-  const columns = useMemo<ColDef<Employee>[]>(
-    () => [
-      { field: "employeeNo", headerName: "사번", sortable: true },
-      { field: "name", headerName: "사원명", sortable: true },
-      { field: "organizationName", headerName: "조직" },
-      { field: "employmentStatus", headerName: "재직 상태" },
-      { field: "hireDate", headerName: "입사일" },
-    ],
-    [],
-  );
-
-  const reset = () => {
-    form.resetFields();
-    setSearchParams(import.meta.env.VITE_ENABLE_MOCK === "true" ? {} : null);
-    setPage({ page: 0, size: 20 });
-    setSelectedRows([]);
-    gridApiRef.current?.deselectAll();
-  };
+  const [detailEmployeeId, setDetailEmployeeId] = useState<string>();
+  const [employeeListState, setEmployeeListState] = useState<EmployeeListState>(initialEmployeeListState);
 
   return (
     <Space direction="vertical" size={16} style={{ width: "100%", padding: 28, background: "#f4f6fa", minHeight: "100vh" }}>
-      <PageHeader
-        title={"사원관리"}
-        description={"사원 정보를 검색하고 조직별 인원을 관리합니다."}
-        actions={<PermissionButton permission="EMPLOYEE_CREATE">{"사원 등록"}</PermissionButton>}
-      />
-      <SearchFormLayout
-        form={form}
-        onFinish={(values) => {
-          const { employee, ...restValues } = values;
-          setPage({ page: 0, size: 20 });
-          setSearchParams({
-            ...restValues,
-            employeeNo: employee?.employeeNo,
-          });
-        }}
-      >
-        <Form.Item name="employee" label={"사원"}>
-          <EmployeeSearchField api={employeeSearchApi} />
-        </Form.Item>
-        <Form.Item name="employee" label={"사원"}>
-          <EmployeeSearchBoxNoTree api={employeeSearchApi} />
-        </Form.Item>
-        <Form.Item name="organizationId" label={"조직"}>
-          <Select style={{ width: 150 }} options={[{ value: "HR", label: "인사팀" }]} />
-        </Form.Item>
-        <Form.Item name="employmentStatus" label={"재직 상태"}>
-          <Select
-            style={{ width: 150 }}
-            options={[
-              { value: "ACTIVE", label: "재직" },
-              { value: "LEAVE", label: "휴직" },
-            ]}
-          />
-        </Form.Item>
-        <Form.Item name="hireDateRange" label={"입사일 범위"}>
-          <DatePicker.RangePicker />
-        </Form.Item>
-        <SearchButtonGroup onReset={reset} />
-      </SearchFormLayout>
-      <Card
-        size="small"
-        style={{ borderColor: "#dbe3ef", borderRadius: 8 }}
-        styles={{ body: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12 } }}
-      >
-        <span style={{ color: "#667085", fontSize: 13 }}>
-          {"선택"} {selectedRows.length}{"건"}
-        </span>
-        <Space>
-          <Button>{"엑셀 다운로드"}</Button>
-          <PermissionButton permission="EMPLOYEE_DELETE" disabled={!selectedRows.length}>
-            {"삭제"}
-          </PermissionButton>
-        </Space>
-      </Card>
-      <AgGridWrapper
-        gridApiRef={gridApiRef}
-        columnDefs={columns}
-        rowData={data?.content ?? []}
-        loading={isFetching}
-        rowSelection="multiple"
-        pagination
-        paginationPageSize={page.size}
-        onSelectionChanged={(event) => setSelectedRows(event.api.getSelectedRows().map((row) => row.id))}
-      />
+      {detailEmployeeId ? (
+        <EmployeeDetailView employeeId={detailEmployeeId} onBack={() => setDetailEmployeeId(undefined)} />
+      ) : (
+        <EmployeeListView
+          state={employeeListState}
+          onStateChange={setEmployeeListState}
+          onSelectEmployee={setDetailEmployeeId}
+        />
+      )}
     </Space>
   );
 }
