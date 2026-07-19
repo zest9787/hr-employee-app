@@ -1,4 +1,4 @@
-﻿import { http, HttpResponse } from "msw";
+import { http, HttpResponse } from "msw";
 
 const employees = [
   { id: "E-1001", employeeNo: "2024001", name: "김민수", organizationName: "인사팀", employmentStatus: "ACTIVE", hireDate: "2024-01-15" },

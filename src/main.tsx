@@ -5,6 +5,17 @@ import { App } from "./app/App";
 async function enableMocking() {
   if (import.meta.env.VITE_ENABLE_MOCK !== "true") return;
   try {
+    const expectedScope = new URL(import.meta.env.BASE_URL, window.location.origin).href;
+    const registrations = await navigator.serviceWorker?.getRegistrations?.();
+    await Promise.all(
+      registrations
+        ?.filter(
+          (registration) =>
+            registration.active?.scriptURL.endsWith("/mockServiceWorker.js") && registration.scope !== expectedScope,
+        )
+        .map((registration) => registration.unregister()) ?? [],
+    );
+
     const { worker } = await import("./mocks/browser");
     await worker.start({
       onUnhandledRequest: "bypass",

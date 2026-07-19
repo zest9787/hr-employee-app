@@ -47,3 +47,4 @@ storybook-static/
 #######################################
 .idea/
 *.iml
+/node_modules/
