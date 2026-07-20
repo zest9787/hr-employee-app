@@ -7,6 +7,8 @@ export interface Employee {
   hireDate: string;
 }
 
+export type EmployeePayload = Omit<Employee, "id">;
+
 export interface EmployeeSearchParams {
   employeeNo?: string;
   name?: string;
